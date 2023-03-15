@@ -1,4 +1,3 @@
-#Bibliotecas utilizadas:
 import plotly.express as px
 import pandas as pd
 import seaborn as srn
