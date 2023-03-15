@@ -1,0 +1,520 @@
+import plotly.express as px
+import pandas as pd
+import seaborn as srn
+import numpy as np
+from scipy import stats
+from scipy.stats import norm, skewnorm
+from yellowbrick.regressor import ResidualsPlot
+pd.options.plotting.backend = 'plotly'
+import plotly
+import dash_bootstrap_components as dbc
+from dash.dependencies import Input, Output
+import plotly.graph_objects as go
+from dash import Dash, html, dcc
+import pandas as pd
+import dash
+import seaborn as sn
+import plotly.graph_objs as go
+import numpy as np
+df = pd.read_csv('     .csv') #nome do arquivo em csv salvo
+df.drop(df.columns[[2]], axis=1, inplace=True)
+df.drop(df.index[0:6], inplace=True)
+df.drop(df.index[-1], inplace=True)
+df.rename(columns={df.columns[0]: "func"}, inplace=True)
+df.rename(columns={df.columns[1]: "sem_interesse"}, inplace=True)
+df.rename(columns={df.columns[2]: "tel_incorreto"}, inplace=True)
+df['TOTAL'].sum()
+df = df.dropna()
+df['TOTAL'].sum()
+df = df.dropna()
+df.drop(df.columns[[3]], axis=1, inplace=True)
+df['sem_interesse'] = df['sem_interesse'].astype(int)
+df['tel_incorreto'] = df['tel_incorreto'].astype(int)
+df.info()
+df = df.sort_values('func')
+df = df.sort_values(by=['sem_interesse'], ascending=False)
+df3 = df.sort_values(by=['tel_incorreto'], ascending=False)
+df.shape
+fig0 = px.bar(df,
+              x='func',
+              y='sem_interesse',
+              color='sem_interesse',
+              color_discrete_sequence=px.colors.qualitative.Dark24,
+              height=400)
+fig0.update_xaxes(title='Funcionários')
+fig0.update_yaxes(title='Descartes em Exclusões LGPD')
+fig0.update_layout(title_text='Gráfico de descartes em Sem Interesse em relação aos funcionários')
+
+fig1 = px.bar(df3,
+               x='func',
+               y='tel_incorreto',
+               color='tel_incorreto',
+               color_discrete_sequence=px.colors.qualitative.Set1,
+               height=400)
+fig1.update_xaxes(title='Funcionários')
+fig1.update_layout(title_text='Gráfico de descartes de Telefone Incorreto em relação aos funcionários')
+
+df2 = pd.read_csv('   .csv') #nome do arquivo em csv salvo
+df2.rename(columns={df2.columns[0]: "dia"}, inplace=True)
+df2.rename(columns={df2.columns[1]: "sem_interesse"}, inplace=True)
+df2.rename(columns={df2.columns[2]: "exclusao_lgpd"}, inplace=True)
+df2.rename(columns={df2.columns[3]: "tel_incorreto"}, inplace=True)
+df2['dia'] = pd.to_datetime(df2['dia'], format='%d/%m/%Y')
+df2.shape
+
+names = ['Sem Interesse', 'Exclusões LGPD', 'Telefone Incorreto']
+colors = {'sem_interesse': '#1400c6', 'exclusao_lgpd': '#c61400', 'tel_incorreto': '#178802'}
+color_map = {name: color for name, color in zip(names, colors)}
+fig2 = px.line(df2,
+               x='dia',
+               y=['sem_interesse', 'exclusao_lgpd', 'tel_incorreto'],
+               color_discrete_map=colors,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte', 'dia': 'Data'})
+fig2.update_xaxes(title='Dias')
+fig2.update_yaxes(title='Quantidade de Descartes')
+fig2.update_layout(title={
+    'text': 'Análise diária do Descartes em Sem Interesse, Exclusões LGPD e Telefone Incorreto ao longo do mês de Janeiro',
+    'y': 0.95,
+    'x': 0.5
+})
+
+correlation = df2.corr()
+import statsmodels.api as sm
+Y = df2.sem_interesse 
+X = sm.add_constant(df2.tel_incorreto) 
+Y.head() 
+X.head() 
+resultado_regressao = sm.OLS(Y, X).fit()
+print(resultado_regressao.summary())
+df2['Y_previsto'] = resultado_regressao.predict()
+
+names2 = ['Sem Interesse', 'Exclusões LGPD', 'Telefone Incorreto', 'Y_previsto']
+color = {'sem_interesse': '#206e3d', 'exclusao_lgpd': '#f85959', 'tel_incorreto': '#1c82ad', 'Y_previsto': '#000000'}
+color_map2 = {name: color for name, color in zip(names2, colors2)}
+fig3 = px.line(df2,
+               x='dia',
+               y=['sem_interesse', 'exclusao_lgpd', 'tel_incorreto', 'Y_previsto'],
+               color_discrete_map=color,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte', 'dia': 'Data'})
+fig3.update_xaxes(title='Dias')
+fig3.update_yaxes(title='Quantidade de Descartes')
+fig3.update_layout(title={
+    'text': 'Análise diária do dos Motivos de Descartes ao longo do mês de Janeiro e a Previsão Estimada',
+    'y': 0.95,
+    'x': 0.5
+})
+
+color = {'sem_interesse': '#506298', 'exclusao_lgpd': '#3e6db0', 'tel_incorreto': '#5c87c5', 'Y_previsto': '#b2e6ff'}
+fig4 = px.bar(df2,
+               x='dia',
+               y=['sem_interesse', 'exclusao_lgpd', 'tel_incorreto', 'Y_previsto'],
+               color_discrete_map=color,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte', 'dia': 'Data'})
+fig4.update_xaxes(title='Dias')
+fig4.update_yaxes(title='Quantidade de Descartes')
+fig4.update_layout(title={
+    'text': 'Análise diária do dos Motivos de Descartes ao longo do mês de Janeiro e a Previsão Estimada',
+    'y': 0.95,
+    'x': 0.5
+})
+
+fig5 = px.scatter(df2,
+                 x="sem_interesse",
+                 y="tel_incorreto",
+                 trendline='ols')
+fig5.update_layout(title="Reta de Regressão - Descartes: Sem Interesse X Telefone Incorreto", 
+                  xaxis_title="Motivo de Descarte: Sem Interesse", 
+                  yaxis_title="Motivo de Descarte: Telefone Incorreto")
+
+
+
+fd = pd.read_csv('     .csv') #nome do arquivo em csv salvo
+fd.drop(fd.columns[[2]], axis=1, inplace=True)
+
+fd.rename(columns={fd.columns[0]: "func"}, inplace=True)
+fd.rename(columns={fd.columns[1]: "sem_interesse"}, inplace=True)
+fd.rename(columns={fd.columns[2]: "tel_incorreto"}, inplace=True)
+
+fd['TOTAL'].sum()
+
+fd = fd.dropna()
+fd['TOTAL'].sum()
+fd['sem_interesse'] = fd['sem_interesse'].astype(int)
+fd['tel_incorreto'] = fd['tel_incorreto'].astype(int)
+fd.info()
+fd = fd.sort_values('func')
+fd.head(30)
+fd.drop(fd.columns[[3]], axis=1, inplace=True)
+fd = fd.sort_values('func')
+fd = fd.sort_values(by=['sem_interesse'], ascending=False)
+fd3 = fd.sort_values(by=['tel_incorreto'], ascending=False)
+
+fig6 = px.bar(fd,
+              x='func',
+              y='sem_interesse',
+              color='sem_interesse',
+              color_discrete_sequence=px.colors.qualitative.Dark24,
+              height=400)
+fig6.update_xaxes(title='Funcionários')
+fig6.update_yaxes(title='Descartes em Exclusões LGPD')
+fig6.update_layout(
+    title_text='Gráfico de descartes em Sem Interesse em relação aos funcionários')
+
+fig7 = px.bar(fd3,
+               x='func',
+               y='tel_incorreto',
+               color='tel_incorreto',
+               color_discrete_sequence=px.colors.qualitative.Set1,
+               height=400)
+fig7.update_xaxes(title='Funcionários')
+fig7.update_layout(
+    title_text='Gráfico de descartes de Telefone Incorreto em relação aos funcionários')
+
+fd2 = pd.read_csv('       .csv') #nome do arquivo em csv salvo
+fd2.rename(columns={fd2.columns[0]: "dia"}, inplace=True)
+fd2.rename(columns={fd2.columns[1]: "sem_interesse"}, inplace=True)
+fd2.rename(columns={fd2.columns[2]: "exclusao_lgpd"}, inplace=True)
+fd2.rename(columns={fd2.columns[3]: "tel_incorreto"}, inplace=True)
+fd2['dia'] = pd.to_datetime(fd2['dia'], format='%d/%m/%Y')
+
+names = ['Sem Interesse', 'Exclusões LGPD', 'Telefone Incorreto']
+colors = {'sem_interesse': '#1400c6',
+          'exclusao_lgpd': '#c61400', 'tel_incorreto': '#178802'}
+color_map = {name: color for name, color in zip(names, colors)}
+fig8 = px.line(fd2,
+               x='dia',
+               y=['sem_interesse', 'exclusao_lgpd', 'tel_incorreto'],
+               color_discrete_map=colors,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte', 'dia': 'Data'})
+fig8.update_xaxes(title='Dias')
+fig8.update_yaxes(title='Quantidade de Descartes')
+fig8.update_layout(title={
+    'text': 'Análise diária do Descartes em Sem Interesse, Exclusões LGPD e Telefone Incorreto ao longo do mês de Fevereiro',
+    'y': 0.95,
+    'x': 0.5
+})
+
+correlation = fd2.corr()
+Y = fd2.sem_interesse
+X = sm.add_constant(fd2.tel_incorreto)
+Y.head() 
+X.head()  
+resultado_regressao = sm.OLS(Y, X).fit()
+print(resultado_regressao.summary())
+fd2['Y_previsto'] = resultado_regressao.predict()
+
+names2 = ['Sem Interesse', 'Exclusões LGPD',
+          'Telefone Incorreto', 'Y_previsto']
+color = {'sem_interesse': '#206e3d', 'exclusao_lgpd': '#f85959',
+         'tel_incorreto': '#1c82ad', 'Y_previsto': '#000000'}
+fig9 = px.line(fd2,
+                x='dia',
+                y=['sem_interesse', 'exclusao_lgpd',
+                    'tel_incorreto', 'Y_previsto'],
+                color_discrete_map=color,
+                labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte', 'dia': 'Data'})
+fig9.update_xaxes(title='Dias')
+fig9.update_yaxes(title='Quantidade de Descartes')
+fig9.update_layout(title={
+    'text': 'Análise diária do dos Motivos de Descartes ao longo do mês de Fevereiro e a Previsão Estimada',
+    'y': 0.95,
+    'x': 0.5
+})
+color = {'sem_interesse': '#506298', 'exclusao_lgpd': '#3e6db0',
+         'tel_incorreto': '#5c87c5', 'Y_previsto': '#b2e6ff'}
+fig10 = px.bar(fd2,
+               x='dia',
+               y=['sem_interesse', 'exclusao_lgpd',
+                   'tel_incorreto', 'Y_previsto'],
+               color_discrete_map=color,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte', 'dia': 'Data'})
+fig10.update_xaxes(title='Dias')
+fig10.update_yaxes(title='Quantidade de Descartes')
+fig10.update_layout(title={
+    'text': 'Análise diária do dos Motivos de Descartes ao longo do mês de Fevereiro e a Previsão Estimada',
+    'y': 0.95,
+    'x': 0.5
+})
+fig11 = px.scatter(fd2,
+                 x="sem_interesse",
+                 y="tel_incorreto",
+                 trendline='ols')
+fig11.update_layout(title="Reta de Regressão - Descartes: Sem Interesse X Telefone Incorreto",
+                  xaxis_title="Motivo de Descarte: Sem Interesse",
+                  yaxis_title="Motivo de Descarte: Telefone Incorreto")
+
+
+df33 = df.copy()
+df44 = fd.copy()
+df33.rename(columns={df33.columns[0]: "func1"}, inplace=True)
+df33.rename(columns={df33.columns[1]: "JANEIRO - Sem Interesse"}, inplace=True)
+df33.rename(columns={df33.columns[2]: "JANEIRO - Telefone Incorreto"}, inplace=True)
+df44.rename(columns={df44.columns[1]: "FEVEREIRO - Sem Interesse"}, inplace=True)
+df44.rename(columns={df44.columns[2]: "FEVEREIRO - Telefone Incorreto"}, inplace=True)
+
+
+df_concat = pd.concat([df33, df44], axis=1)
+
+
+df_concat = df_concat.sort_values(by=['JANEIRO - Sem Interesse'], ascending=False)
+df_concat2 = df_concat.sort_values(by=['JANEIRO - Telefone Incorreto'], ascending=False)
+
+
+
+
+color3 = {'FEVEREIRO - Sem Interesse': '#87bcf6', 'JANEIRO - Sem Interesse': '#3e6db0'}
+fig12 = px.bar(df_concat,
+               x='func1',
+               y=['JANEIRO - Sem Interesse', 'FEVEREIRO - Sem Interesse'],
+               color_discrete_map=color3,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte'})
+fig12.update_xaxes(title='Funcionários')
+fig12.update_yaxes(title='Quantidade de Descartes')
+fig12.update_layout(title={
+    'text': 'Análise diária do dos Motivos de Descartes: Sem Interesse entre o mês de Fevereiro e Janeiro',
+    'y': 0.95,
+    'x': 0.5
+})
+
+
+colors4 = {'FEVEREIRO - Telefone Incorreto': '#91087b', 'JANEIRO - Telefone Incorreto': '#de6fcc'}
+fig13 = px.bar(df_concat2,
+               x='func1',
+               y=['JANEIRO - Telefone Incorreto', 'FEVEREIRO - Telefone Incorreto'],
+               color_discrete_map=colors4,
+               labels={'value': 'Quantidade de Descarte', 'variable': 'Motivo de Descarte'})
+fig13.update_xaxes(title='Funcionários')
+fig13.update_yaxes(title='Quantidade de Descartes')
+fig13.update_layout(title={
+    'text': 'Análise diária do dos Motivos de Descartes: Telefone Incorreto entre o mês de Fevereiro e Janeiro',
+    'y': 0.95,
+    'x': 0.5
+})
+
+df_concat['porcentagem'] = (df_concat['JANEIRO - Sem Interesse'] - df_concat['FEVEREIRO - Sem Interesse']) / df_concat['JANEIRO - Sem Interesse'] * 100 
+
+df_concat['porcentagem'] = df_concat['porcentagem'].round()
+app = dash.Dash(__name__, external_stylesheets=[dbc.themes.COSMO])
+
+app.layout = dbc.Container([
+    dbc.Row([
+        dbc.Col([
+            html.H2("Relatório de descarte Spotter de Janeiro e Fevereiro", style={"margin-top": "40px"}),
+            html.P("Neste relatório, o objetivo principal é o tratamento e análise dos dados a partir da extração do banco de dados pelo Spotter, afim de"
+                   " analisar os Motivos de Descarte em: Lead sem interesse, Exclusões pela Lei Geral da Proteção de Dados e Telefone Incorreto", style={"margin-top": "40px"}),
+            html.H3("Janeiro:", style={"margin-top":"20px"}),
+            html.P('O conjunto de dados utilizados consiste em 25 observações e 3 variáveis, das quais são:',
+                   style={"margin-top": "20px"}),
+            html.Div(children=[html.Strong('Funcionários'), ' = Funcionários da Empresa eGestor'], style={"margin-bottom": "10px"}),
+            html.Div(children=[html.Strong('Sem Interesse'), ' = Descartes do Spotter na opção Sem Interesse'], style={"margin-bottom":"10px"}),
+            html.Div(children=[html.Strong('Telefone Incorreto'), ' = Descartes do Spotter na opção Telefone Incorreto'], style={"margin-top":"10px"}),
+            html.H5(children=[html.Strong('Dataframe ajustado com os dados')], style={"margin-top":"20px"}),
+            html.Table([
+                html.Thead([
+                    html.Tr([
+                        html.Th('Funcionários'),
+                        html.Th('Sem Interesse'),
+                        html.Th('Telefone Incorreto')
+                    ])
+                ]),
+                html.Tbody([
+                    html.Tr([
+                        html.Td(df.iloc[i]['func']),
+                        html.Td(df.iloc[i]['sem_interesse']),
+                        html.Td(df.iloc[i]['tel_incorreto'])
+                    ]) for i in range(len(df))
+                ])
+            ], className='table table-striped', style={"margin-top":"40px"}),
+            html.Div('A seguir, plotação de dois gráfico para visualização da quantidade de cada funcionário no mês de Janeiro em relação aos descartes Sem Interesse e Telefone Incorreto:', style={"margin-top":"20px"})
+            ])
+          ]),
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id="grafico", figure=fig0)
+        ], md=6, style={"margin-top":"30px"}),
+        dbc.Col([
+            dcc.Graph(id="grafico2", figure=fig1)
+        ], md=6, style={"margin-top":"30px"}),
+    ]),
+        dbc.Col([
+            html.P('Segue abaixo uma análise descritiva dos gráficos plotados:'),
+            html.P([
+                'Em relação aos descartes em Sem Interesse e Telefone Incorreto, destaca-se somente',
+                html.Strong(' Marcelo Machado e Gabriel Padoin'),
+                ' com números altos nos ',
+                html.Strong('dois'),
+                ' motivos de descartes considerados, tal qual, apresentando respectivamente, Marcelo com números acima de ',
+                html.Strong('250 '),
+                ' e Gabriel acima de ',
+                html.Strong('240. Henrique Lima e Pedro Machado'),
+                ' apresentam números altos no descarte em Sem interesse, com ',
+                html.Strong('233 e 275'),
+                ' respectivamente. Porém nos descartes por telefone incorreto, Henrique Lima apresenta 151 descartes e Pedro Machado 115.'
+            ], style={"margin-top": "0px"}),
+            html.P([
+                html.Strong('Patricia Lima, Andressa Lorenzoni, Mesquita, Patricia Melo e Eduarda Fragoso'),
+                ' se destacam em descartes ',
+                html.Strong('Sem Interesse'),
+                ' com quantidade de descartes acima de 100.',
+                html.Strong(' O restante está na faixa da mediana: 67.0')
+            ], style={"margin-top": "10px"}),
+            html.P([
+                html.Strong('Os descartes por telefone incorreto, a maioria está na faixa da mediana de 38.5.')
+            ], style={"margin-top":"10px"})
+    ]),
+    html.Div([
+        dcc.Graph(id="grafico2", figure=fig2, style={"margin-top":"40px"}),
+        html.P("        Neste gráfico nota-se que o motivo de Descarte Sem Interesse começa com queda no mês de Janeiro, possuindo um pico"
+               " de aproximadamente 300 descartes e queda logo em seguida, permanecendo em crescimento e queda pelo resto do mês,"
+               " chegando ao mínimo de 41 e o máximo de 151 descartes. No dia 09, os descartes em Sem Interesse tem um aumento muito"
+               " signficativo, tal qual, no dia 06 (sexta-feira) possui 122 descartes, e no dia 09(segunda), aumentando em 150% e no dia"
+               " seguinte havendo uma queda de metade dos descartes."),
+        html.P("        É perceptível a isso, que nas segundas possuem a maior quantidade de"
+               " descartes das semana, chegando na sexta-feira com menores quantidas, exceto no dia 26 que a quantidade aumenta, entratanto"
+               " o resto da semana segue um perfil, de grande quantidade na segunda e vai caindo ao longo da semana, chegando na sexta-feira"
+               " com a menor quantidade."),
+        html.P("        Em relação aos descartes em Telefone Incorreto, o dia com maior quantidade de descartes foi no dia 23,"
+               " sendo final do mês, diferente do Sem Interesse. No início do mês ele começa com queda, igual ao outro motivode descarte e ao"
+               " longo dos dias vai crescendo e caindo a quantidade de descartes, não sendo 'constante'. Os dois dias com menores descartes (13)"
+               " e dia (20) são os mesmo para os dois descartes. A partir do dia 16, os descartes possuem o mesmo perfil do Sem Interesse," 
+               " iniciando a semana com muitos descartes e finalizando com poucos, e ao longo da semana decaindo. Os descartes em Exclusões por LGPD,"
+               " a média é de 1.17, com registros de descartes do dia 09 até o dia 25, após apresenta-se uma queda e volta a ter descartes no dia 27"),
+        ], style={"margin-top": "10px"}),
+        dcc.Graph(id="grafico4", figure=fig3, style={"margin-top":"40px"}),
+        html.P(children=[html.Strong('Interpretação da Regressão Linear:')], style={"margin-top":"20px"}),
+        html.P("O modelo utilizado foi o Mínimo Quadrados Ordinários (OLS). A variável dependente utilizada foi: 'sem_interesse', ou seja, os descartes"
+               " na opção Sem Interesse. O R2, possui uma variação de 10,1% em Y(Motivo de descarte: Sem Interesse) pode ser explicada por X(Motivo de descarte:Telefone Incorreto),"
+               " ou seja, ele é p coeficiente de determinação que"
+               " nos mostra quanta variação percentual independente pode ser explicada por variável independente. Assim sendo, a correlação ela é linearmente positiva e fraca,"
+               " sendo de aproximadamente 0,32,"
+               " de modo que quando os Descartes em Sem Interesse aumentam, os descartes em Telefone Incorreto também aumentam - já explicado anteriormente, porém agora afirmando"
+               " por meio da Regressão Linear.", style={"margin-top": "10px"}),
+        html.P("Neste gráfico foi adicionado mais uma linha, representando a previsão dentro da amostra:"
+               "", style={"margin-top": "10px"}),
+        dcc.Graph(id="grafico3", figure=fig5, style={"margin-top":"40px"}),
+        html.P("Mesmos dados do gráfico acima, porém por meio da utilização do Gráfico de Barras:"),
+        dcc.Graph(id="grafico6", figure=fig4, style={"margin-top":"40px"}),
+    dbc.Col([
+            html.H3("Fevereiro",
+                    style={"margin-top": "40px"}),
+            html.P("Neste relatório, o objetivo principal é o tratamento e análise dos dados a partir da extração do banco de dados pelo Spotter, afim de"
+                   " analisar os Motivos de Descarte em: Lead sem interesse, Exclusões pela Lei Geral da Proteção de Dados e Telefone Incorreto", style={"margin-top": "40px"}),
+            html.P('O conjunto de dados utilizados consiste em 30 observações e 3 variáveis, das quais são:',
+                   style={"margin-top": "20px"}),
+            html.Div(children=[html.Strong('Funcionários'), ' = Funcionários da Empresa eGestor'], style={
+                     "margin-bottom": "10px"}),
+            html.Div(children=[html.Strong('Sem Interesse'), ' = Descartes do Spotter na opção Sem Interesse'], style={
+                     "margin-bottom": "10px"}),
+            html.Div(children=[html.Strong('Telefone Incorreto'),
+                     ' = Descartes do Spotter na opção Telefone Incorreto'], style={"margin-top": "10px"}),
+            html.H5(children=[html.Strong('Dataframe ajustado com os dados')], style={
+                    "margin-top": "20px"}),
+            html.P('Foi realizado a importação de dados a partir de um arquivo csv, remoção e renomeação de colunas, além de retirar os NaN dos dados,'
+                   ' qual foi uma escolha para melhor análise dos dados em geral, sendo removido o total de 17 descartes, não sendo de diferença'
+                   'signficativa para a análise. Aleḿ disso, foi realizado tratamento para ordem alfabética, tornar variável "int" e a transformação em datetime.',
+                   style={"margin-top": "20px"}),
+            html.Table([
+                html.Thead([
+                    html.Tr([
+                        html.Th('Funcionários'),
+                        html.Th('Sem Interesse'),
+                        html.Th('Telefone Incorreto')
+                    ])
+                ]),
+                html.Tbody([
+                    html.Tr([
+                        html.Td(df.iloc[i]['func']),
+                        html.Td(df.iloc[i]['sem_interesse']),
+                        html.Td(df.iloc[i]['tel_incorreto'])
+                    ]) for i in range(len(fd))
+                ])
+            ], className='table table-striped2', style={"margin-top": "40px"}),
+            html.Div('A seguir, plotação de dois gráfico para visualização da quantidade de cada funcionário no mês de Fevereiro em relação aos descartes Sem Interesse e Telefone Incorreto:', style={
+                     "margin-top": "20px"}),
+    dbc.Row([
+        dbc.Col([
+            dcc.Graph(id="grafico99", figure=fig6)
+        ], md=6, style={"margin-top": "30px"}),
+        dbc.Col([
+            dcc.Graph(id="grafico88", figure=fig7)
+        ], md=6, style={"margin-top": "30px"})
+    ]),
+        dbc.Col([
+            html.P("Segue abaixo uma análise descritiva dos gráficos plotados:"),
+            html.Strong('FEVEREIRO'),
+            html.P([
+                'Em relação aos descartes em Sem Interesse e Telefone Incorreto, destaca-se somente',
+                html.Strong(' Bruna Fioravante'),
+                ' com números altos nos dois motivos de descartes considerados, tal qual, apresentando respectivamente,',
+                html.Strong(' 237 e 162 descartes'),
+            ], style={"margin-top": "0px"}),
+            'Nos descartes em Sem Interesse há em destaque:',
+            html.Strong(' Eduarda Donadel com descartes acima de 200. Estefáni Campos, Mesquita, Andressa Lorenzoni, Gian Franco Dalcin, Gabriel Padoin, Paula Fioravente e Patrícia Melo,'),
+            ' com descartes entre',
+            html.Strong(' 100 e 234,'),
+            ' em ordem descrecente de nomes.'
+        ], style={"margin-top": "0px"}),
+        html.Strong('Bruna Fioravante com maior quantidade.'),
+        html.P([
+            'O restante é abaixo da quantidade de 100, com uma média de:',
+            html.Strong(' xxxx'),
+        ], style={"margin-top": "0px"}),
+        html.P(['Nos descartes em Telefone Incorreto há um destaque:',
+                html.Strong(
+                    'Gabriel Padoin, Estafáni Campos, Augusto Barreto, Eduarda Donadel e Gian Franco Dalcin'),
+                ', com descartes entre',
+                html.Strong('100 e 170.'),
+                ], style={"margin-top": "0px"}),
+        html.Strong("Gabriel Padoin com maior quantidade."),
+        html.P(['O restante é abaixo da quantidade de 100, com uma média de:',
+                html.Strong('xxx'),
+                ], style={"margin-top": "0px"}),
+        html.P("Nota-se a presença de Estefáni, Bruna, Eduarda, Gabriel e Gian com destaque em quantidades nos dois motivos de descartes."),
+        html.P([html.Strong('OBS:'),
+                ' Nota-se maior quantidade de indíviduos com grandes quantidades de descartes no Motivo SEM INTERESSE.',
+                ], style={"margin-top": "0px"}),
+    ]),
+    html.Div([
+        dcc.Graph(id="grafico77", figure=fig8, style={"margin-top": "40px"}),
+        html.P("Neste gráfico nota-se que os motivos de Descarte Sem Interesse e Telefone Incorreto estão com um crescimento e queda em mesmo ritmo"
+               " durante os dias do mês de Fevereiro, de modo que no dia 08 os descartes por Telefone Incorreto apresentou a maior quantidade de descartes,"
+               " e no no dia seguinte, os descartes na opção Telefone Incorreto registraram seu segundo maior dia de descartes no mês. Logo, analisando o"
+               " mês inteiro, a tendência de maiores quantidades de descartes acontecem até metade do mês. Ainda assim, nota-se que após o dia 14, as duas"
+               " variáveis obtém uma queda 'constante', além de as duas possuirem a menor quantidade de descartes no dia 20/01."
+               " Observa-se que durante o período de 01/01 até 14/01 a quantidade de descartes aumentou em uma média de: XXX e depois do período de queda,"
+               " logo em seguida aumentou consideravelmete do dia 20 para o dia 22, com uma média de 112.0 entre os dois motivos de descartes."
+               " Em relação ao descartes em Exclusões por LGPD, a média é de 1.17, com registros de descartes até a metade do mês, dia 15/01 e com retomada"
+               " de descartes no dia 27, ou seja estagnando na metade do mês e retornando no final. É possível"
+               " pensar que não está acontecendo ligações para o mesmo indivíduo várias vezes, ou envio de algo, a fim de os mesmo não haverem necessidade de"
+               " precisar informar que o descarte seria em função da LGPD. Porém pode acontecer de o descarte estar sendo feito de forma incorreta, baseada no"
+               " outro relatório.",
+               style={"margin-top": "10px"}),
+            ]),
+    html.Div([
+        dcc.Graph(id="grafico66", figure=fig9, style={"margin-top": "40px"}),
+        html.P(children=[html.Strong('Interpretação da Regressão Linear:')], style={
+               "margin-top": "20px"}),
+        html.P("O modelo utilizado foi o Mínimo Quadrados Ordinários (OLS). A variável dependente utilizada foi: 'sem_interesse', ou seja, os descartes"
+               " na opção Sem Interesse. O R2, possui uma variação de 50,7% em Y(Motivo de descarte: Sem Interesse) pode ser explicada por X(Motivo de descarte:Telefone Incorreto),"
+               " ou seja, ele é p coeficiente de determinação que"
+               " nos mostra quanta variação percentual independente pode ser explicada por variável independente. Assim sendo, a correlação ela é linearmente positiva e forte,"
+               " sendo de aproximadamente 0.71,"
+               " de modo que quando os Descartes em Sem Interesse aumentam, os descartes em Telefone Incorreto também aumentam - já explicado anteriormente, porém agora afirmando"
+               " por meio da Regressão Linear.", style={"margin-top": "10px"}),
+        html.P("Neste gráfico foi adicionado mais uma linha, representando a previsão dentro da amostra:"
+               "", style={"margin-top": "10px"}),
+        dcc.Graph(id="grafico55", figure=fig11, style={"margin-top": "40px"}),
+        html.P(
+            "Mesmos dados do gráfico acima, porém por meio da utilização do Gráfico de Barras:"),
+        dcc.Graph(id="grafico6", figure=fig10, style={"margin-top": "40px"}),
+        html.P("Aqui está um gráfico de comparação dos descartes em Sem Interesse, do mês de Janeiro e Fevereiro. Nota-se uma queda dos descartes considerável em todos os funcionários, entretanto em alguns mais.",
+               style={"margin-top":"20px"}),
+        dcc.Graph(id="grafico999", figure=fig12, style={"margin-top":"10px"}),
+        dcc.Graph(id="grafico939", figure=fig13, style={"margin-top":"10px"})
+
+    ]),
+])
+
+app.run_server(port=8060, host='192.168.40.230')
+
+
