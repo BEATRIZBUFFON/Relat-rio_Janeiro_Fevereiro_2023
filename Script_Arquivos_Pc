@@ -1,3 +1,4 @@
+#bibliotecas
 import plotly.express as px
 import pandas as pd
 import seaborn as srn
@@ -16,38 +17,52 @@ import dash
 import seaborn as sn
 import plotly.graph_objs as go
 import numpy as np
+
 #Importação dos dados:
 df = pd.read_csv('janeiro_p.csv')
+
 #Remoção de algumas colunas 
 df.drop(df.columns[[2]], axis=1, inplace=True)
+
 #Excluir linhas específicas
 df.drop(df.index[0:6], inplace=True)
 df.drop(df.index[-1], inplace=True)
+
 #Renomear as colunas
 df.rename(columns={df.columns[0]: "func"}, inplace=True)
 df.rename(columns={df.columns[1]: "sem_interesse"}, inplace=True)
 df.rename(columns={df.columns[2]: "tel_incorreto"}, inplace=True)
+
 #Soma com NAN= 4111
 df['TOTAL'].sum()
+
 #Remoção dos NAN = 
 df = df.dropna()
+
 #Soma sem NAN= 4101
 df['TOTAL'].sum()
+
 #Remoção dos NAN
 df = df.dropna()
+
 #Escluir coluna 'total':
 df.drop(df.columns[[3]], axis=1, inplace=True)
+
 #Mudança de variável para formato int
 df['sem_interesse'] = df['sem_interesse'].astype(int)
 df['tel_incorreto'] = df['tel_incorreto'].astype(int)
+
 #Retornar informações sobre alguns dados
 df.info()
+
 #Ordenar os funcionários em ordem alfabética
 df = df.sort_values('func')
 df = df.sort_values(by=['sem_interesse'], ascending=False)
 df3 = df.sort_values(by=['tel_incorreto'], ascending=False)
+
 #Observações e variáveis:
 df.shape
+
 #Construção de gráficos:
 fig0 = px.bar(df,
               x='func',
@@ -67,19 +82,23 @@ fig1 = px.bar(df3,
                height=400)
 fig1.update_xaxes(title='Funcionários')
 fig1.update_layout(title_text='Gráfico de descartes de Telefone Incorreto em relação aos funcionários')
-#Análise diária dos dados do mês de Janeiro
 
+#Análise diária dos dados do mês de Janeiro
 #Importação dos dados
 df2 = pd.read_csv('diaria_janeiro2323.csv')
+
 #Renomear as colunas
 df2.rename(columns={df2.columns[0]: "dia"}, inplace=True)
 df2.rename(columns={df2.columns[1]: "sem_interesse"}, inplace=True)
 df2.rename(columns={df2.columns[2]: "exclusao_lgpd"}, inplace=True)
 df2.rename(columns={df2.columns[3]: "tel_incorreto"}, inplace=True)
+
 #Passar para formato datetime a coluna 'dia'
 df2['dia'] = pd.to_datetime(df2['dia'], format='%d/%m/%Y')
+
 #Observações e variáveis:
 df2.shape
+
 #Construção dos gráfico:
 names = ['Sem Interesse', 'Exclusões LGPD', 'Telefone Incorreto']
 colors = {'sem_interesse': '#1400c6', 'exclusao_lgpd': '#c61400', 'tel_incorreto': '#178802'}
@@ -99,6 +118,7 @@ fig2.update_layout(title={
 
 #Análise de correlação para verificar se existe uma relação linear entre duas variáveis.
 correlation = df2.corr()
+
 #Estimação do Modelo de regressão
 import statsmodels.api as sm
 Y = df2.sem_interesse 
@@ -108,6 +128,7 @@ X.head() #Criou um df com a constante, sendo 1
 resultado_regressao = sm.OLS(Y, X).fit()
 print(resultado_regressao.summary())
 df2['Y_previsto'] = resultado_regressao.predict()
+
 #Construção dos gráficos com a previsão:
 names2 = ['Sem Interesse', 'Exclusões LGPD', 'Telefone Incorreto', 'Y_previsto']
 color = {'sem_interesse': '#206e3d', 'exclusao_lgpd': '#f85959', 'tel_incorreto': '#1c82ad', 'Y_previsto': '#000000'}
@@ -138,6 +159,7 @@ fig4.update_layout(title={
     'y': 0.95,
     'x': 0.5
 })
+
 #Construção do Gráfico da Regressão Linear
 fig5 = px.scatter(df2,
                  x="sem_interesse",
@@ -146,37 +168,46 @@ fig5 = px.scatter(df2,
 fig5.update_layout(title="Reta de Regressão - Descartes: Sem Interesse X Telefone Incorreto", 
                   xaxis_title="Motivo de Descarte: Sem Interesse", 
                   yaxis_title="Motivo de Descarte: Telefone Incorreto")
-
-
-
+                  
 fd = pd.read_csv('fevereiro_p.csv')
 # Remoção de algumas colunas
 fd.drop(fd.columns[[2]], axis=1, inplace=True)
+
 # Renomear as colunas
 fd.rename(columns={fd.columns[0]: "func"}, inplace=True)
 fd.rename(columns={fd.columns[1]: "sem_interesse"}, inplace=True)
 fd.rename(columns={fd.columns[2]: "tel_incorreto"}, inplace=True)
+
 # Soma com NAN= 3964
 fd['TOTAL'].sum()
+
 # Remoção dos NAN
 fd = fd.dropna()
+
 # Soma sem NAN= 3947
 fd['TOTAL'].sum()
+
 # Mudança de variável para formato int
 fd['sem_interesse'] = fd['sem_interesse'].astype(int)
 fd['tel_incorreto'] = fd['tel_incorreto'].astype(int)
+
 # Retornar informações sobre alguns dados
 fd.info()
+
 # Ordenar os funcionários em ordem alfabética
 fd = fd.sort_values('func')
+
 # Visualização das 30 observações
 fd.head(30)
+
 # Remoção coluna TOTAL:
 fd.drop(fd.columns[[3]], axis=1, inplace=True)
+
 #Ordenar os funcionários em ordem alfabética
 fd = fd.sort_values('func')
 fd = fd.sort_values(by=['sem_interesse'], ascending=False)
 fd3 = fd.sort_values(by=['tel_incorreto'], ascending=False)
+
 # Construção de gráficos:
 fig6 = px.bar(fd,
               x='func',
@@ -186,8 +217,7 @@ fig6 = px.bar(fd,
               height=400)
 fig6.update_xaxes(title='Funcionários')
 fig6.update_yaxes(title='Descartes em Exclusões LGPD')
-fig6.update_layout(
-    title_text='Gráfico de descartes em Sem Interesse em relação aos funcionários')
+fig6.update_layout(title_text='Gráfico de descartes em Sem Interesse em relação aos funcionários')
 
 fig7 = px.bar(fd3,
                x='func',
@@ -200,16 +230,18 @@ fig7.update_layout(
     title_text='Gráfico de descartes de Telefone Incorreto em relação aos funcionários')
 
 # Análise diária dos dados do mês de Fevereiro
-
 # Importação dos dados
 fd2 = pd.read_csv('diaria_fevereiro.csv')
+
 # Renomear as colunas
 fd2.rename(columns={fd2.columns[0]: "dia"}, inplace=True)
 fd2.rename(columns={fd2.columns[1]: "sem_interesse"}, inplace=True)
 fd2.rename(columns={fd2.columns[2]: "exclusao_lgpd"}, inplace=True)
 fd2.rename(columns={fd2.columns[3]: "tel_incorreto"}, inplace=True)
+
 # Passar para formato datetime a coluna 'dia'
 fd2['dia'] = pd.to_datetime(fd2['dia'], format='%d/%m/%Y')
+
 # Construção dos gráfico:
 names = ['Sem Interesse', 'Exclusões LGPD', 'Telefone Incorreto']
 colors = {'sem_interesse': '#1400c6',
@@ -227,10 +259,13 @@ fig8.update_layout(title={
     'y': 0.95,
     'x': 0.5
 })
+
 # Análise de correlação para verificar se existe uma relação linear entre duas variáveis.
 correlation = fd2.corr()
+
 # Estimação do Modelo de regressão
 Y = fd2.sem_interesse
+
 # Criação de 2 variáveis para passar a função e rodar nessa regressão
 X = sm.add_constant(fd2.tel_incorreto)
 Y.head()  # Criou uma série com valores de Y
@@ -238,6 +273,7 @@ X.head()  # Criou um df com a constante, sendo 1
 resultado_regressao = sm.OLS(Y, X).fit()
 print(resultado_regressao.summary())
 fd2['Y_previsto'] = resultado_regressao.predict()
+
 # Construção dos gráficos com a previsão:
 names2 = ['Sem Interesse', 'Exclusões LGPD',
           'Telefone Incorreto', 'Y_previsto']
@@ -271,6 +307,7 @@ fig10.update_layout(title={
     'y': 0.95,
     'x': 0.5
 })
+
 # Construção do Gráfico da Regressão Linear
 fig11 = px.scatter(fd2,
                  x="sem_interesse",
@@ -281,7 +318,6 @@ fig11.update_layout(title="Reta de Regressão - Descartes: Sem Interesse X Telef
                   yaxis_title="Motivo de Descarte: Telefone Incorreto")
 
 #Gráfico comparação:
-
 df33 = df.copy()
 df44 = fd.copy()
 df33.rename(columns={df33.columns[0]: "func1"}, inplace=True)
@@ -290,16 +326,9 @@ df33.rename(columns={df33.columns[2]: "JANEIRO - Telefone Incorreto"}, inplace=T
 df44.rename(columns={df44.columns[1]: "FEVEREIRO - Sem Interesse"}, inplace=True)
 df44.rename(columns={df44.columns[2]: "FEVEREIRO - Telefone Incorreto"}, inplace=True)
 
-
 df_concat = pd.concat([df33, df44], axis=1)
-
-
 df_concat = df_concat.sort_values(by=['JANEIRO - Sem Interesse'], ascending=False)
 df_concat2 = df_concat.sort_values(by=['JANEIRO - Telefone Incorreto'], ascending=False)
-
-
-
-
 color3 = {'FEVEREIRO - Sem Interesse': '#87bcf6', 'JANEIRO - Sem Interesse': '#3e6db0'}
 fig12 = px.bar(df_concat,
                x='func1',
@@ -313,7 +342,6 @@ fig12.update_layout(title={
     'y': 0.95,
     'x': 0.5
 })
-
 
 colors4 = {'FEVEREIRO - Telefone Incorreto': '#91087b', 'JANEIRO - Telefone Incorreto': '#de6fcc'}
 fig13 = px.bar(df_concat2,
